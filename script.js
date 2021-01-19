@@ -5,6 +5,8 @@ const twitterBtn = document.getElementById('twitter');
 const newQuoteBtn = document.getElementById('new-quote');
 const loader = document.getElementById('loader');
 
+let apiQuotes = [];
+
 //Loading Spinner
 function showLoadingSpinner() {
     loader.hidden = false;
@@ -18,33 +20,36 @@ function removeLoadingSpinner() {
     }
 }
 
+//Show new Quote
+function newQuote() {
+    showLoadingSpinner();
+    // Pick a random quote from apiQuotes array
+    const quote = apiQuotes[Math.floor(Math.random() * apiQuotes.length)];
+    if (quote.author) {
+        authorText.textContent = quote.author;
+    } else {
+        authorText.textContent = 'Unknown';
+    }
+    //Check quote length to determine styling
+    if (quote.text.length > 120) {
+        quoteText.classList.add('long-quote');
+    } else {
+        quoteText.classList.remove('long-quote');
+    }
+    quoteText.textContent = quote.text;
+    removeLoadingSpinner();
+}
 
 
 // Get quote from API
 async function getQuote() {
     showLoadingSpinner();
-    const proxyUrl = 'https://cors-anywhere.herokuapp.com/'
-    const apiURL = 'http://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=json';
+    // const proxyUrl = 'https://cors-anywhere.herokuapp.com/'
+    const apiURL = 'https://type.fit/api/quotes';
     try {
-        const response = await fetch(proxyUrl + apiURL);
-        const data = await response.json();
-
-        // If author is blank, attribute to Unknown
-        if (data.quoteAuthor === '') {
-            authorText.innerText = 'Unknown';
-        } else {
-            authorText.innerText = data.quoteAuthor;
-        }
-
-        //Reduce font size for long quotes
-        if (data.quoteText.length > 120) {
-            quoteText.classList.add('long-quote');
-        } else {
-            quoteText.classList.remove('long-quote');
-        }
-
-        quoteText.innerText = data.quoteText;
-        removeLoadingSpinner();
+        const response = await fetch(apiURL);
+        apiQuotes = await response.json();
+        newQuote();
     } catch(error) {
         getQuote();
     }
@@ -60,7 +65,7 @@ function tweetQuote() {
 
 
 //Event Listenters
-newQuoteBtn.addEventListener('click', getQuote);
+newQuoteBtn.addEventListener('click', newQuote);
 twitterBtn.addEventListener('click', tweetQuote);
 
 
